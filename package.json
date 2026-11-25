@@ -1,0 +1,77 @@
+{
+  "name": "clipforge-ai",
+  "version": "1.0.0",
+  "description": "ClipForge AI - Professional Local-First AI Video Clipping Application",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev:renderer": "vite",
+    "build:renderer": "vite build",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "compile": "npm run build:renderer && npm run build:electron",
+    "dev": "vite",
+    "electron:dev": "concurrently -k \"npm run dev:renderer\" \"npm run electron:wait\"",
+    "electron:wait": "wait-on tcp:5173 && npm run build:electron && electron .",
+    "start": "npm run build:electron && electron .",
+    "build": "npm run build:renderer && npm run build:electron && electron-builder"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.1.7",
+    "lucide-react": "^0.368.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tailwind-merge": "^2.2.2",
+    "zustand": "^4.5.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "@types/react": "^18.2.79",
+    "@types/react-dom": "^18.2.25",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.19",
+    "concurrently": "^8.2.2",
+    "electron": "^30.0.1",
+    "electron-builder": "^24.13.3",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.3",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.9",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.clipforge.ai",
+    "productName": "ClipForge AI",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "backend",
+        "to": "backend",
+        "filter": [
+          "**/*",
+          "!**/__pycache__/*",
+          "!**/*.pyc",
+          "!**/.pytest_cache/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}

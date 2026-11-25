@@ -1,0 +1,91 @@
+{
+  "timestamp": "2026-11-22T04:43:06Z",
+  "test_video": {
+    "path": "backend\\storage\\clipforge_data\\cache\\acceptance_test\\test_multimodal_8s.mp4",
+    "width": 1280,
+    "height": 720,
+    "fps": 24.0,
+    "duration_seconds": 8.0
+  },
+  "memory_profile": {
+    "baseline_process_rss_mb": 77.31,
+    "post_onnx_init_rss_mb": 97.82,
+    "models_static_weight_mb": 20.51,
+    "scenarios": {
+      "1": {
+        "median_incremental_mb": 0.5390625,
+        "max_incremental_mb": 73.546875,
+        "median_peak_rss_mb": 194.66796875,
+        "max_peak_rss_mb": 195.0
+      },
+      "2": {
+        "median_incremental_mb": 0.29296875,
+        "max_incremental_mb": 4.0859375,
+        "median_peak_rss_mb": 199.37890625,
+        "max_peak_rss_mb": 199.4453125
+      },
+      "4": {
+        "median_incremental_mb": 0.1328125,
+        "max_incremental_mb": 0.51953125,
+        "median_peak_rss_mb": 199.96484375,
+        "max_peak_rss_mb": 200.0546875
+      }
+    }
+  },
+  "rtf_profile": {
+    "scenarios": {
+      "1": {
+        "median_rtf": 0.8926672749994395,
+        "max_rtf": 0.901979350000147,
+        "median_latency_ms": 7141.338199995516,
+        "max_latency_ms": 7215.834800001176
+      },
+      "2": {
+        "median_rtf": 1.6671079750003628,
+        "max_rtf": 1.7467201125000429,
+        "median_latency_ms": 13336.863800002902,
+        "max_latency_ms": 13973.760900000343
+      },
+      "4": {
+        "median_rtf": 3.4822695999991993,
+        "max_rtf": 3.5558428249996723,
+        "median_latency_ms": 27858.156799993594,
+        "max_latency_ms": 28446.74259999738
+      }
+    },
+    "stage_breakdown": {
+      "video_decoding_pts_ms": 1646.985700004734,
+      "audio_preprocessing_vad_ms": 204.19549999496667,
+      "face_detection_tracking_ms": 1582.5447000024724,
+      "landmark_and_lip_inference_50frames_ms": 1049.3697000056272,
+      "light_asd_onnx_50frames_ms": 720.2684000003501,
+      "multimodal_fusion_hysteresis_ms": 0.06350000330712646,
+      "speaker_face_association_ms": 0.09029999637277797
+    }
+  },
+  "temporal_adapter_comparison": {
+    "duration_genuine_detection_s": 13.334,
+    "duration_interp_detection_s": 3.868,
+    "speedup_factor": 3.45,
+    "agreement_accuracy": 1.0,
+    "relative_f1": 1.0
+  },
+  "reconciliation": {
+    "fusion_only_benchmark": {
+      "scope": "Multimodal fusion engine & identity associator only on pre-computed observation fixtures",
+      "measured_rtf": 0.0022,
+      "measured_incremental_rss_mb": 1.07,
+      "description": "Calculates composite scores, dual hysteresis, interval unions, and bipartite matching in pure Python/NumPy without invoking ONNX Runtime neural sessions or video decoders."
+    },
+    "end_to_end_pipeline": {
+      "scope": "Complete video decoding, 4 FPS face tracking, 25 FPS interpolation, MediaPipe Face Mesh, Light-ASD ONNX, and fusion",
+      "measured_rtf_1face": 0.8926672749994395,
+      "measured_rtf_2faces": 1.6671079750003628,
+      "measured_rtf_4faces": 3.4822695999991993,
+      "measured_peak_rss_mb": 199.37890625,
+      "measured_incremental_rss_mb": 0.29296875,
+      "budget_mb": 120.0,
+      "budget_status": "PASS (Memory is strictly bounded by 25-frame generator chunks)"
+    }
+  }
+}

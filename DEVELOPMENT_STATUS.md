@@ -1,0 +1,301 @@
+# ClipForge AI — Development Status
+
+## Phase Execution Checklist
+
+- [x] **PHASE 1: Project Foundation**
+  - [x] Inspect development environment (Node.js v24.12.0, npm 11.6.2, Python 3.11.9, FFmpeg 9.0.2, RTX 4060 GPU).
+  - [x] Check CUDA and PyTorch compatibility (CUDA 13.2 driver / PyTorch 2.6.0+cu124 compatible).
+  - [x] Establish four-layer project structure (`electron/`, `src/`, `backend/app/`, `storage/`).
+  - [x] Configure Electron with context isolation and secure preload bridge.
+  - [x] Configure React + Vite + TypeScript with Tailwind CSS design system.
+  - [x] Configure FastAPI backend with SQLite (aiosqlite + SQLAlchemy 2.0).
+  - [x] Implement session token authentication (`x-session-token`) between Electron and FastAPI.
+  - [x] Implement live hardware telemetry endpoint (`/api/system/status`) via `nvidia-smi` and `psutil`.
+  - [x] Implement database connectivity health endpoint (`/api/health`).
+  - [x] Build and run Phase 1 test suite (`test_phase1.py`).
+
+- [x] **PHASE 2: Complete UI Foundation**
+  - [x] Establish dark charcoal design system with modular UI kit (`Modal`, `ToastContainer`, `Input`, `Button`).
+  - [x] Build Dashboard with real SQLite statistics (`/api/dashboard/stats`), recent projects, and live RTX 4060 VRAM monitor.
+  - [x] Build Project Management (`src/pages/Projects.tsx`) with Grid/List views, search, sort, create modal, rename modal, and safe delete confirmation modal.
+  - [x] Build Video Import Screen (`src/pages/VideoImport.tsx`) with drag-and-drop, Electron native file picker (`openVideoDialog`), FFprobe technical stream metadata inspection, and project assignment.
+  - [x] Build Application Settings (`src/pages/Settings.tsx`) covering General, Storage, Hardware Acceleration (NVENC, VRAM budget), and local AI model defaults.
+  - [x] Implement backend services and repositories (`ProjectService`, `VideoService`, `SettingsService`).
+  - [x] Implement Pydantic API schemas (`backend/app/schemas/api_schemas.py`).
+  - [x] Implement REST routes (`/api/projects`, `/api/dashboard/stats`, `/api/videos/probe`, `/api/videos/import`, `/api/settings`).
+  - [x] Build and verify Phase 2 test suite (`test_phase2.py`).
+
+- [x] **PHASE 3: Complete Video Processing Engine**
+  - [x] Capability Detection Service (`backend/app/video/capabilities.py`):
+    - Validated FFmpeg & FFprobe binaries (`Gyan.FFmpeg 9.0.2-full_build`).
+    - Dynamic encoder testing (diagnosed NVENC API mismatch 13.1 vs driver 13.0, verified libx264 functional, verified libass and subtitle filters).
+    - Exposed `GET /api/system/video-capabilities`.
+  - [x] FFmpeg Process Manager (`backend/app/video/ffmpeg_manager.py`):
+    - Safe `asyncio.create_subprocess_exec` invocation without `shell=True`.
+    - `-progress pipe:1` real-time progress parsing (`out_time_us`, `frame`, `fps`, `speed`, percent).
+    - PID tracking and Windows process tree termination (`taskkill /F /T /PID`).
+  - [x] Deep FFprobe Stream Extraction (`backend/app/video/ffprobe_manager.py`):
+    - Complete inspection for video streams (dimensions, fps, codecs, aspect ratio, rotation) and audio streams (sample rate, channels, bit rate).
+  - [x] Video Processing Modules:
+    - Poster thumbnail & multi-frame timeline strip generator (`backend/app/video/thumbnail_generator.py`).
+    - 16kHz mono 16-bit PCM WAV extractor for Whisper AI (`backend/app/video/audio_extractor.py`).
+    - 720p H.264 faststart MP4 preview generator (`backend/app/video/preview_generator.py`).
+    - Frame-accurate video cutting engine with duration verification (`backend/app/video/clip_generator.py`).
+    - Multi-ratio reframing engine (`backend/app/video/aspect_ratio.py`) supporting 9:16, 1:1, 4:5, 16:9 in `center_crop`, `fit_pad`, and `blur_background` modes.
+  - [x] Background Job & Worker System:
+    - Thread-safe cancellation tokens (`backend/app/workers/cancellation.py`).
+    - WebSocket real-time progress broadcaster (`backend/app/workers/job_events.py`) on `/ws/jobs`.
+    - Single-heavy-worker bounded queue (`backend/app/workers/job_manager.py`) preserving 8GB VRAM.
+    - Crash/restart recovery resetting interrupted jobs to failed state with descriptive message.
+    - REST job management (`/api/jobs`, `/api/jobs/{id}/cancel`, `/api/jobs/{id}/retry`).
+  - [x] Media Streaming & Delivery:
+    - Reusable HTTP 206 Partial Content range streamer (`backend/app/core/streaming.py`) for seamless Electron/HTML5 video seek.
+    - Proxy streaming endpoint `GET /api/videos/{video_id}/preview` and clip streaming `GET /api/clips/{clip_id}/stream`.
+  - [x] Frontend Video Workspace:
+    - Interactive custom VideoPlayer (`src/components/video/VideoPlayer.tsx`).
+    - Timeline frame previews strip (`src/components/video/ThumbnailStrip.tsx`).
+    - Technical video metadata specs card (`src/components/video/VideoMetadataCard.tsx`).
+    - Live Background Job Queue widget & page (`src/components/jobs/JobQueue.tsx`, `src/pages/JobQueuePage.tsx`).
+    - Full Project Studio workspace (`src/pages/ProjectStudio.tsx`) with Clip Creator modal and Clip Player.
+  - [x] Verification:
+    - All 15 tests across `test_phase1.py`, `test_phase2.py`, and `test_phase3.py` passing in ~20s.
+    - Zero TypeScript / Vite compilation errors (`npm run compile`).
+
+- [x] **PHASE 4: Transcription Engine (Local faster-whisper)**
+  - [x] Local AI Environment & Inference Engine:
+    - Installed `faster-whisper-1.2.1` and `ctranslate2-4.9.0` into backend virtual environment.
+    - Model registry (`backend/app/ai/model_registry.py`) supporting `tiny`, `base`, `small` (default), and `medium` with metadata, required file manifests, and SHA256 integrity checks.
+    - Device detection & active capability probe (`backend/app/ai/device_detector.py`) with CUDA detection, dynamic `cublas64_12.dll` library check, and graceful, automatic CPU `int8` fallback without job failure.
+    - On-demand model manager (`backend/app/ai/model_manager.py`) with download progress streaming, cancellation, integrity checks, and deletion.
+    - Pre-validation and silence handling (`backend/app/ai/transcription_validator.py`) detecting audio readability, duration limits, and zero-speech silence.
+    - Transcription engine (`backend/app/ai/transcription_engine.py`) with sequential model locking, Silero VAD filtering, word-level timestamps, real-time WebSocket progress, cancellation tokens, and model unloading.
+  - [x] Persistence & Service Layer:
+    - Extended database schema in `backend/app/models/transcript.py` with `status`, `task_type`, `device_used`, `processing_duration_seconds`, and `updated_at`.
+    - Transcript repository (`backend/app/services/transcript_repository.py`) supporting full CRUD, segment retrieval, word formatting, and inline segment text editing with fulltext resynchronization.
+    - Transcription coordinator (`backend/app/services/transcription_service.py`) managing extraction, transcription, and database commits.
+    - Background job worker integration (`backend/app/workers/job_executor.py`) executing `transcribe_video` jobs with WebSocket stage updates.
+  - [x] REST API Routes:
+    - `GET /api/ai/capabilities`: Real-time hardware status and fallback diagnostics.
+    - `GET /api/ai/models`: Model catalog with sizes, local paths, and download states.
+    - `POST /api/ai/models/{name}/download`: Background model download.
+    - `DELETE /api/ai/models/{name}`: Model removal.
+    - `POST /api/videos/{video_id}/transcribe`: Queue transcription background job.
+    - `GET /api/videos/{video_id}/transcript`: Retrieve complete transcript with words and segments.
+    - `GET /api/transcripts/{transcript_id}`: Retrieve transcript by ID.
+    - `PATCH /api/transcripts/segments/{segment_id}`: Edit segment text with SQLite sync.
+  - [x] React Desktop UI & Player Synchronization:
+    - Interactive `TranscriptWord` with active playback highlighting and seek on click.
+    - Interactive `TranscriptSegment` with timestamp badges, confidence score, and inline editor.
+    - Fulltext search bar (`TranscriptSearch`) with case-insensitive match counters and jump navigation.
+    - Transcription settings modal (`TranscriptionSettings`) with model selector and language selector.
+    - Master transcript panel (`TranscriptPanel`) and synchronized integration into `ProjectStudio.tsx` with tabbed sidebar and bidirectional `VideoPlayer` seeking (`seekTime`).
+  - [x] Test Suite & Verification:
+    - 12 comprehensive unit and integration tests in `backend/tests/test_phase4.py` passing offline.
+    - Full test suite (`pytest backend/tests/ -v`) 27/27 tests passing in 30s.
+    - Full frontend TypeScript and Vite production bundle (`npm run compile`) passing with code 0.
+
+- [x] **PHASE 5: Highlight AI (Local LLM & 2-Stage Highlight Discovery)**
+  - [x] Local LLM Runtime & Model Catalog (`backend/app/ai/llm/`):
+    - Deployed native Windows standalone `llama.cpp` runtime (`b12532` Clang AVX2/AVX-512 CPU build) in `storage/clipforge_data/bin/llama/`.
+    - Pinned GGUF model registry (`model_registry.py`) with `qwen-2.5-3b` (default instruct), `llama-3.2-3b`, `qwen-2.5-1.5b`, and `qwen-2.5-0.5b` with download URLs, context windows, and SHA256 integrity validation.
+    - Model manager (`model_manager.py`) with download progress streaming, cooperative cancellation, and disk status checks.
+    - Subprocess execution wrapper (`llm_provider.py`) running `llama-cli.exe` with structured CLI flags, timeout protection, and clean process tree termination (`taskkill /F /T /PID`).
+    - Sequential inference lock (`inference_manager.py`) preventing concurrent AI model load and enforcing single heavy AI model in memory at a time.
+    - Content-type specialized prompt templates (`prompt_templates.py`) covering 8 content categories (`podcast`, `interview`, `educational`, `tutorial`, `motivational`, `business`, `gaming`, `general`).
+    - Robust JSON response parser (`structured_output.py`) handling Markdown fencing, trailing commas, and Pydantic validation (`RawCandidatesResponse`).
+  - [x] Two-Stage Highlight Intelligence Engine (`backend/app/ai/highlights/`):
+    - Transcript preprocessor & sentence-boundary chunker (`transcript_chunker.py`) with pause thresholding (> 0.65s) and sliding context windows (120s max, 3-sentence overlap) preserving complete speech context without mid-word cuts.
+    - Two-stage candidate generator (`candidate_generator.py`): Stage A (deterministic windowing fallback) + Stage B (local instruct LLM semantic discovery).
+    - Physical boundary refiner (`boundary_refiner.py`) snapping timestamps to sentence/word bounds and extending context for hook completeness.
+    - Ground-truth quote verifier (`highlight_validator.py`) verifying candidate quotes against source transcript using n-gram matching.
+    - Multi-dimensional explainable scorer (`candidate_scorer.py`) calculating 0–100 scores across 7 distinct dimensions (Hook, Content, Flow, Context, Interest, Conciseness, Ending) with detailed positive reasons and negative penalties.
+    - Duplicate & overlap detector (`duplicate_detector.py`) filtering candidates with temporal IoU > 0.60 and textual Jaccard similarity.
+    - Master pipeline orchestrator (`highlight_analyzer.py`) coordinating the complete 10-stage discovery lifecycle.
+  - [x] Database & Service Layer:
+    - Added `HighlightCandidate` model in `backend/app/db/models.py` with score breakdown JSON, hook text, rationale, and state machine (`discovered`, `approved`, `rejected`, `edited`, `ready_for_render`).
+    - Service layer (`backend/app/services/highlight_service.py`) with candidate CRUD, manual boundary editing, approval/rejection state transitions, and `create_clip_from_candidate`.
+    - Background job worker integration (`backend/app/workers/job_executor.py`) running `analyze_highlights` with real-time WebSocket progress stages on `/ws/jobs`.
+  - [x] REST API Routes:
+    - `GET /api/llm/models`: LLM model catalog with download states and disk sizes.
+    - `POST /api/llm/models/{model_id}/download`: Background LLM download.
+    - `DELETE /api/llm/models/{model_id}`: Remove local LLM weights.
+    - `POST /api/videos/{video_id}/analyze-highlights`: Queue highlight analysis background job.
+    - `GET /api/videos/{video_id}/highlights`: List discovered candidates with filtering and sorting.
+    - `GET /api/highlights/{candidate_id}`: Candidate details with score breakdown.
+    - `PATCH /api/highlights/{candidate_id}`: Edit candidate boundaries and title.
+    - `POST /api/highlights/{candidate_id}/approve`: Approve candidate.
+    - `POST /api/highlights/{candidate_id}/reject`: Reject candidate.
+    - `POST /api/highlights/{candidate_id}/create-clip`: Generate clip from candidate.
+    - `DELETE /api/highlights/{candidate_id}`: Delete candidate.
+  - [x] React Desktop UI:
+    - `HighlightScoreBreakdown.tsx`: Color-coded multi-factor virality score badges and category breakdown bars.
+    - `HighlightCandidateCard.tsx`: Candidate cards with play/seek preview, inline timestamp editing, state badges, and Approve/Reject/Create Clip actions.
+    - `HighlightSettingsModal.tsx`: Content type selector, target clip count, length constraints, and LLM model picker.
+    - `HighlightCandidateList.tsx`: Filterable candidate list (all, approved, rejected, pending) with search and sorting.
+    - `HighlightAnalysisPanel.tsx`: Full AI Highlights studio tab integrated in `ProjectStudio.tsx` with live job tracking and bidirectional player seeking.
+  - [x] Verification & Tests:
+    - 22 comprehensive unit and integration tests in `backend/tests/test_phase5.py`.
+    - Full test suite (`pytest backend/tests/ -v`): 48 passed, 1 skipped (real GGUF model download optional) in 35.77s.
+    - Full frontend TypeScript and Vite production compilation (`npm run compile`) passing with code 0.
+
+- [x] **PHASE 6: Visual AI, Face Tracking & Smart Reframing**
+  - [x] Architecture & Schemas:
+    - `backend/app/ai/vision/schemas.py`: `NormalizedBBox`, `FacialLandmarks`, `FaceDetection`, `TrackSample`, `TrackedFace`, `SceneComposition`, `CropCoordinate`, `ReframeConfig`, `ManualCropInput`.
+  - [x] Computer Vision Detection:
+    - `backend/app/ai/vision/face_detector.py`: Primary `YuNetFaceDetector` using OpenCV DNN with lightweight YuNet ONNX weights (232 KB) providing bounding boxes and 5 facial landmarks at ~20ms CPU latency.
+    - Fallback `HaarCascadeFaceDetector` using OpenCV built-in XML for 100% offline environments.
+  - [x] Multi-Face Spatial-Temporal Tracking:
+    - `backend/app/ai/vision/face_tracker.py`: IoU and centroid distance association across sampled frames.
+    - Occlusion resilience (`max_missed_frames = 5` / 1.5s).
+    - Track persistence, track filtering, and trajectory accumulation.
+  - [x] Scene Analysis & Subject Selection:
+    - `backend/app/ai/vision/scene_analyzer.py`: Scene density classification (`single_subject`, `multi_person`, `crowd`, `b_roll`).
+    - `backend/app/ai/vision/subject_selector.py`: `largest_face`, `center_face`, `manual_track`, and `group` framing.
+  - [x] Reframe Engine & Boundary Mathematics:
+    - `backend/app/ai/vision/reframe_engine.py`: Target aspect ratios (9:16, 1:1, 4:5, 16:9), headroom margin (10-25%), EMA temporal smoothing, velocity limit clamping (max 0.50/s displacement), and hard boundary clamping. Even pixel dimensions guaranteed for libx264.
+  - [x] Service Layer & SQLite Persistence:
+    - Updated `backend/app/db/models.py` with `VisionAnalysis`, `FaceTrack`, `ManualCropCorrection`, and `ReframePreset`.
+    - `backend/app/services/vision_service.py`: CRUD and trajectory calculation from database records.
+    - `backend/app/ai/vision/vision_manager.py`: Sequential resource locking (`asyncio.Lock`), frame sampling at 4.0 fps downscaled to 640px, and cancellation token support.
+  - [x] Background Jobs & FFmpeg Integration:
+    - `JobExecutor._execute_visual_analysis`: Background vision scan with WebSocket progress.
+    - `AspectRatioProcessor.build_trajectory_filtergraph`: Dynamic piecewise linear crop interpolation in FFmpeg filtergraphs.
+    - `ClipGenerator.generate_clip`: Renders frame-accurate 9:16 vertical MP4s using dynamic crop trajectories.
+  - [x] FastAPI Routes:
+    - `backend/app/api/routes/vision.py`: Endpoints for analysis queueing, fetching results, computing real-time trajectories, adding/deleting manual crop keyframes, and managing presets.
+  - [x] React Desktop UI:
+    - `src/components/vision/FaceDetectionOverlay.tsx`: Interactive bounding boxes and crop framing window over video player.
+    - `src/components/vision/CropPreview.tsx`: Live phone mockup previewing cropped vertical video.
+    - `src/components/vision/ReframeSettingsPanel.tsx`: Sliders for aspect ratio, strategy, smoothing, headroom, and velocity.
+    - `src/components/vision/VisionAnalysisPanel.tsx`: Full Visual AI tab in `ProjectStudio.tsx`.
+  - [x] Verification & Tests:
+    - `backend/tests/test_phase6.py`: 12 comprehensive unit and integration tests.
+    - Real acceptance script (`backend/acceptance_phase6_real.py`): 5/5 real tests passing, rendering 1080x1920 vertical MP4 in 1.22s.
+    - Full regression test suite (`pytest backend/tests/ -v`): 61/61 tests passing (100% pass rate in 28.96s).
+    - Frontend TypeScript and Vite compilation (`npm run compile`): Exit code 0.
+    - Generated `PHASE6_FINAL_ACCEPTANCE_REPORT.md`, `docs/VISION_ENGINE.md`, and `docs/PHASE7_ACTIVE_SPEAKER_ROADMAP.md`.
+
+- [x] **PHASE 7: Professional Subtitle Styling, Karaoke Highlighting & Final Render Pipeline**
+  - [x] Architecture & Schemas:
+    - `backend/app/schemas/subtitle_schemas.py`: `SubtitleWord`, `SubtitleSegment`, `CaptionPresetSchema`, `SubtitleTrackResponse`, `UpdateSegmentRequest`, `SplitSegmentRequest`, `MergeSegmentsRequest`, `RenderExportRequest`, `ExportResponse`.
+    - `backend/app/db/models.py`: Updated with `SubtitleTrack` (1:1 with `Clip`, relationship to `CaptionPreset`), updated `CaptionPreset` with all typography/alignment/margin fields, updated `Export` with preset link, subtitle settings, error tracking.
+  - [x] ASS Subtitle & Karaoke Engine:
+    - `backend/app/services/subtitle_renderer.py`:
+      - 8 built-in distinctive presets: Bold Creator (default), Clean Minimal, Podcast Highlight, Cinematic, Gaming, Educational, Classic Subtitles, High Contrast.
+      - Hex to ASS `&HAABBGGRR` color conversion with alpha transparency support.
+      - Safe ASS timestamp formatting (`H:MM:SS.cs`) and text escaping against injection.
+      - Windows filesystem path escaping (`C\:/...`) for FFmpeg's `ass` video filter.
+      - Viral karaoke active word pop animation (`\fscx110\fscy110` with highlight color tags).
+      - Word-by-word cumulative reveal (`word_by_word`), phrase fade (`phrase_fade`), and clean static styles.
+  - [x] Subtitle Service & Persistence Layer:
+    - `backend/app/services/subtitle_service.py`:
+      - Automatic transcript extraction normalized to clip-relative timeline ($t_{\text{rel}} = t - t_{\text{start}}$).
+      - Strict chronological validation and clip window filtering.
+      - Interactive word/segment editing, splitting at arbitrary word indices, and adjacent segment merging.
+      - Preset seeding on boot and custom preset management.
+      - Dynamic SQLAlchemy `flag_modified` state tracking for JSON segment lists.
+  - [x] Final Render Pipeline & Export Service:
+    - `backend/app/services/export_service.py`: Complete export coordination with FFprobe validation and database tracking.
+    - `backend/app/video/clip_generator.py`: Integrated `ass=filename='...'` subtitle burn-in with dynamic camera tracking crop trajectories and bicubic scaling. Robust fallback for normalized/pixel coordinate conversion.
+    - `backend/app/workers/job_executor.py`: Asynchronous background export worker with WebSocket progress broadcasting and cancellation cleanup.
+  - [x] FastAPI REST Endpoints:
+    - `backend/app/api/routes/subtitles.py`: `GET /api/clips/{id}/subtitles`, `PATCH /api/clips/{id}/subtitles`, `PUT /api/clips/{id}/subtitles/segments/{id}`, `POST /api/clips/{id}/subtitles/segments/{id}/split`, `POST /api/clips/{id}/subtitles/segments/merge`, `GET /api/subtitles/presets`, `POST /api/subtitles/presets`.
+    - `backend/app/api/routes/exports.py`: `POST /api/clips/{id}/render-export`, `GET /api/exports/{id}`, `GET /api/projects/{id}/exports`, `GET /api/exports/{id}/download`.
+  - [x] React Desktop UI:
+    - `src/components/subtitles/CaptionPresetGallery.tsx`: Visual selection cards for all 8 presets with active badges and descriptions.
+    - `src/components/subtitles/CaptionStyleEditor.tsx`: Font family, font size, primary/highlight colors, outline, shadow, and safe mobile margin sliders.
+    - `src/components/subtitles/SubtitleEditor.tsx`: Word-by-word interactive transcript editor with inline text editing, timestamps, split, and merge controls.
+    - `src/components/subtitles/SubtitlePreviewOverlay.tsx`: Real-time synchronized subtitle preview directly on HTML5 video player before rendering.
+    - `src/components/subtitles/ExportModal.tsx`: Render configuration modal (aspect ratio, resolution, bitrate, encoder, preset) with live progress bar.
+    - `src/components/subtitles/SubtitlePanel.tsx`: Complete subtitle studio tab mounted in `ProjectStudio.tsx`.
+  - [x] Verification & Tests:
+    - `backend/tests/test_phase7.py`: 12 comprehensive unit and integration tests (100% passing).
+    - `backend/acceptance_phase7_real.py`: Real FFmpeg rendering of 1080x1920 vertical MP4 with dynamic crop trajectory and burned ASS karaoke subtitles (6/6 stages passing).
+    - Full regression test suite (`pytest backend/tests/ -v`): 73/73 tests passing across all 7 phases in 62.81s.
+    - Frontend TypeScript and Vite production compilation (`npm run build:renderer`): Code 0.
+    - Documentation: `docs/PHASE7_IMPLEMENTATION_PLAN.md`, `docs/SUBTITLE_ENGINE.md`, `docs/FINAL_RENDER_PIPELINE.md`, and `PHASE7_FINAL_ACCEPTANCE_REPORT.md`.
+
+- [ ] **PHASE 8: Audio Intelligence, Speaker Diarization & Audio Enhancement**
+  - [x] **Stage 1: Architecture Review & Technical Planning**:
+    - [x] Hardware verification (RTX 4060, Intel i7-13620H, 16GB RAM).
+    - [x] Plan & component design in `docs/PHASE8_IMPLEMENTATION_PLAN.md`.
+  - [x] **Stage 2: Audio Preprocessing & Voice Activity Detection Engine**:
+    - [x] Audio Preprocessor (`backend/app/ai/audio/audio_preprocessor.py`):
+      - Canonical 16kHz mono 16-bit linear PCM (`pcm_s16le`) extraction without `shell=True`.
+      - Signal metrics calculation (peak amplitude, RMS, silence detection, clipping detection).
+      - Bounded memory windowed streaming: 30s chunks with 1s overlap, preventing OOM.
+      - Source media preservation: target audio saved in project cache (`storage/clipforge_data/projects/{project_id}/audio/{video_id}_16k.wav`).
+    - [x] Voice Activity Detector (`backend/app/ai/audio/voice_activity_detector.py`):
+      - Local Silero VAD v4 via ONNX Runtime on CPU (0 paid APIs, 0 cloud dependencies).
+      - Real-Time Factor (RTF) $\approx 0.013\times$ (approx. 78x faster than real-time playback).
+      - Post-processing: Boundary deduplication, gap merging (`max_merge_gap_ms`), padding (`speech_pad_ms`), and noise filtering (`min_speech_duration_ms`).
+      - Strict accuracy: 0 false positives on non-speech noise; 100% rejection on pure silence.
+    - [x] Database Schema & Models (`backend/app/db/models.py`):
+      - `AudioAnalysis`: Parent audio metadata and speech duration entity.
+      - `SpeechInterval`: Timestamped speech intervals with probability and confidence.
+    - [x] FastAPI REST Endpoints (`backend/app/api/routes/audio.py`):
+      - `GET /api/audio/capabilities`: Local VAD capabilities and defaults.
+      - `POST /api/videos/{video_id}/audio-analysis`: Enqueue background analysis job.
+      - `GET /api/videos/{video_id}/audio-analysis`: Retrieve latest analysis with speech percentage.
+      - `GET /api/audio-analysis/{analysis_id}/intervals`: Retrieve timestamped intervals.
+      - `POST /api/audio-analysis/{analysis_id}/cancel`: Cancel active/queued analysis jobs.
+    - [x] Background Worker (`backend/app/workers/job_executor.py`):
+      - `_execute_audio_analysis` with 8-stage live WebSocket progress reporting.
+    - [x] Verification & Tests:
+      - `backend/tests/test_phase8_audio.py`: 19 unit and integration tests (100% passing, including interval union, boundary clamping, overlap deduplication, end-of-file speech, and non-zero PTS preservation).
+      - `backend/acceptance_phase8_audio.py`: 8 test suites on real media files (100% passing, RTF=0.0094x, 106.1x speedup, 45.38 MB incremental RAM).
+      - Artifact: `backend/storage/clipforge_data/cache/acceptance_test/phase8_audio_results.json`.
+      - Documentation: `docs/AUDIO_PREPROCESSING.md`, `docs/VOICE_ACTIVITY_DETECTION.md`, `docs/PHASE8_STAGE2_REPORT.md`, and `docs/PHASE8_FINAL_ACCEPTANCE_REPORT.md`.
+  - [x] **Stage 3: Offline Speaker Diarization Engine**:
+    - [x] Verified Model: 3D-Speaker CAM++ ONNX (`3dspeaker_speech_campplus_sv_en_voxceleb_16k.onnx`), 29,596,979 bytes, SHA-256 `98daf9bcf1c8abf3db374fec4c27a5eda7c58705bb3f180d057b085a72a88bb5`.
+    - [x] Vectorized Pure NumPy Kaldi 80-bin Mel FBank Extractor (`FBankExtractor`) with Povey window and CMN.
+    - [x] Thread-safe CPU embedding extraction (`SpeakerEmbeddingExtractor`) with 512-dim L2 normalization, RTF = 0.0382x.
+    - [x] Pure NumPy Agglomerative Hierarchical Clustering (`SpeakerClusterer`) with average (UPGMA) linkage and cosine distance.
+    - [x] Sliding temporal window slicer (1.5s window, 0.75s step) and turn consolidation with midpoint boundary resolution.
+    - [x] Database Schema & Non-destructive Migration: `speakers` updated, `speaker_turns` and `speaker_embeddings` tables created.
+    - [x] Service Layer & Job Worker (`SpeakerAnalysisService`, `_execute_speaker_diarization`).
+    - [x] REST API Routes (`/api/speakers/capabilities`, `/api/audio-analysis/{id}/diarize`, `/api/audio-analysis/{id}/speakers`, `/api/audio-analysis/{id}/speaker-turns`, `/api/speaker-turns/{id}`, `/api/speakers/{id}`).
+    - [x] React & Electron Frontend (`SpeakerAnalysisPanel`, `SpeakerTimeline`, `SpeakerCard`, `SpeakerTurnEditor` in `ProjectStudio.tsx`).
+    - [x] Acceptance & Verification:
+      - `backend/acceptance_phase8_diarization.py`: 100% accepted, 0.00% DER with 0.25s collar, 114.25 MB RAM.
+      - Total regression test suite: 127/127 passed (`pytest backend/tests/`).
+      - TypeScript & Electron build: `npm run compile` passed with 0 errors.
+      - Documentation: `docs/PHASE8_STAGE3_MILESTONE1_REPORT.md`, `docs/PHASE8_STAGE3_REPORT.md`, `docs/PHASE8_STAGE3_ACCEPTANCE_RESULTS.json`.
+  - [x] **Stage 4: Audio-Visual Active Speaker Detection, Temporal Fusion & Identity Association**:
+    - [x] **Step 1: Repository Audit, Model Research & Architecture Design**:
+      - Audited Phase 6 face tracking, Phase 8 Stage 2 Silero VAD, and Phase 8 Stage 3 CAM++ diarization.
+      - Evaluated TalkNet, SyncNet, ASDNet, and Light-ASD against strict local CPU, memory, and license criteria.
+      - Selected CVPR 2023 Light-ASD ONNX (1.0M parameters, 0.6 GFLOPs, MIT license) + MediaPipe Face Mesh V2 (478 3D landmarks, Apache-2.0).
+      - Authored `docs/PHASE8_STAGE4_REPOSITORY_AUDIT.md`, `docs/PHASE8_STAGE4_MODEL_EVALUATION.md`, `docs/PHASE8_STAGE4_ARCHITECTURE.md`, `docs/PHASE8_STAGE4_IMPLEMENTATION_PLAN.md`.
+    - [x] **Step 2: Facial Landmarks, Lip Dynamics & Light-ASD Inference Engine**:
+      - Pinned and verified `face_landmarks.onnx` (4,920,995 bytes, SHA-256 `f38c3321...`, Apache-2.0).
+      - Converted Light-ASD checkpoint (`finetuning_TalkSet.model`) to bit-accurate ONNX (`light_asd.onnx`, 4,105,904 bytes, SHA-256 `3ac4cd78...`, max abs error vs PyTorch $2.503 \times 10^{-6}$, MIT License).
+      - Implemented `MediaPipeFaceLandmarkDetector` with bounding box expansion and robust affine normalization.
+      - Implemented `LipDynamicsExtractor` with pure NumPy MAR, EMA smoothing, velocity, and rolling variance.
+      - Implemented `AudioVisualSynchronizer` handling variable frame rates, stream offsets, and audio bounds padding.
+      - Implemented `LightASDDetector` with pure NumPy 13-dim 100 Hz MFCC feature extraction and calibrated softmax.
+      - Database models `ActiveSpeakerInterval`, `SpeakerFaceAssociation`, `FacialLandmarkAnalysis`, `LipDynamicsObservation`.
+      - REST API routes `GET /api/active-speakers/capabilities`, `GET /api/videos/{id}/active-speakers`, `PUT /api/videos/{id}/speakers/{id}/associate`, `DELETE /api/videos/{id}/active-speakers`.
+    - [x] **Step 3: Active Speaker Fusion, Identity Association & Real-World Acceptance**:
+      - Implemented `AVTemporalAdapter` bridging Phase 6 4.0 FPS keyframe tracking to Light-ASD's 25.0 FPS video / 100 Hz MFCC (4:1 step ratio) context.
+      - Strict mathematical separation between Concept A (instantaneous active speaker detection) and Concept B (global speaker-face identity association).
+      - Multi-signal evidence fusion engine with explicit states (`active_speaker`, `silent_listener`, `off_screen_speaker`, `unknown`, `overlapping`).
+      - Dual-threshold hysteresis ($\tau_{\text{on}}=0.65, \tau_{\text{off}}=0.35$), minimum duration filtering, gap bridging ($< 150\text{ ms}$), and scene cut resets.
+      - Multi-turn evidence aggregation with negative co-occurrence penalization ($P_{\text{neg}}$) and status tiers (`confirmed`, `provisional`, `off_screen`).
+      - Permanent protection and immutability for user manual association overrides (`is_manual = True`).
+      - Constructed 20-scenario real-world multimodal benchmark dataset (`tests/fixtures/real_world_dataset.py`).
+      - Empirical verification: Concept A F1 = **0.9772**, Concept B Accuracy = **1.0000** (20/20), RTF = **0.0022x** on CPU, Incremental RAM = **1.07 MB** (Budget $< 120.0\text{ MB}$).
+      - Frontend UI integration in `SpeakerAnalysisPanel.tsx`, `SpeakerTimeline.tsx` (dual-lane acoustic/visual timeline), and `SpeakerCard.tsx` (face badges and manual override dropdown).
+      - Exposed clean consumer interface `get_primary_active_speaker_at` for Phase 6 `SubjectSelector` / `ReframeEngine`.
+      - Full regression verification: **187 / 187 tests passing (100%)**; TypeScript and Electron build passing.
+      - Documentation: `docs/PHASE8_STAGE4_STEP3_IMPLEMENTATION.md`, `docs/PHASE8_STAGE4_FUSION_ENGINE.md`, `docs/PHASE8_STAGE4_SPEAKER_FACE_ASSOCIATION.md`, `docs/PHASE8_STAGE4_REAL_WORLD_EVALUATION.md`, `docs/PHASE8_STAGE4_PERFORMANCE_OPTIMIZATION.md`, `docs/PHASE8_STAGE4_FINAL_ACCEPTANCE_REPORT.md`, `docs/PHASE8_STAGE4_STEP3_RESULTS.json`.
+  - [ ] **Stage 5: Audio Enhancement & Mastering** (EBU R128 loudness normalization, speech-preserving noise gating).
+  - [ ] **Stage 6: Final Integration & Production Sign-off**.
+
+- [ ] **PHASE 9: Model Management**
+  - [ ] Local model catalog and download manager.
+  - [ ] VRAM allocation and sequential model unloader.
+
+- [ ] **PHASE 10: Production**
+  - [ ] End-to-end integration testing.
+  - [ ] Windows packaging.

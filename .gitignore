@@ -1,0 +1,56 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/venv/
+venv/
+.venv/
+env/
+
+# Build and Packaging outputs
+dist/
+dist-electron/
+release/
+build/
+*.exe
+*.blockmap
+*.nsis.7z
+
+# Storage & Data
+storage/
+backend/storage/
+*.db
+*.sqlite
+*.sqlite3
+
+# Models & Large weights
+models/
+*.onnx
+*.gguf
+*.bin
+*.pt
+*.pth
+
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs & Environment
+*.log
+.env
+.env.local
+
+# Frontend frameworks
+frontend/.next/
+frontend/out/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,0 +1,257 @@
+{
+  "timestamp": "2026-11-22T04:20:25Z",
+  "hardware": {
+    "platform": "Windows 11",
+    "cpu": "Intel Core i7-13620H",
+    "execution_provider": "CPUExecutionProvider"
+  },
+  "memory_profile": {
+    "baseline_rss_mb": 71.03,
+    "peak_rss_mb": 72.09,
+    "incremental_rss_mb": 1.07,
+    "budget_mb": 120.0,
+    "budget_passed": true
+  },
+  "concept_a_metrics": {
+    "precision": 0.9601,
+    "recall": 0.9949,
+    "f1_score": 0.9772,
+    "false_activation_rate": 0.0364,
+    "tp_duration_seconds": 29.35,
+    "fp_duration_seconds": 1.22,
+    "fn_duration_seconds": 0.15
+  },
+  "concept_b_metrics": {
+    "association_accuracy": 1.0,
+    "associations_correct": 20,
+    "associations_total": 20,
+    "manual_override_preservation": 1.0
+  },
+  "performance": {
+    "total_benchmark_time_seconds": 0.136,
+    "total_audio_seconds": 63.0,
+    "rtf": 0.0022
+  },
+  "scenarios": [
+    {
+      "scenario_id": "scenario_01_solo_speaker",
+      "description": "Solo speaker to camera with clean speech",
+      "duration_seconds": 3.0,
+      "precision": 0.982,
+      "recall": 1.0,
+      "f1_score": 0.991,
+      "associations_matched": 1,
+      "associations_total": 1,
+      "processing_time_ms": 8.01
+    },
+    {
+      "scenario_id": "scenario_02_two_person_dialogue",
+      "description": "Two visible speakers alternating turns without overlap",
+      "duration_seconds": 3.0,
+      "precision": 0.919,
+      "recall": 0.991,
+      "f1_score": 0.954,
+      "associations_matched": 2,
+      "associations_total": 2,
+      "processing_time_ms": 10.0
+    },
+    {
+      "scenario_id": "scenario_03_multi_person_panel",
+      "description": "3 visible people: 1 active speaker, 2 quiet listeners",
+      "duration_seconds": 3.0,
+      "precision": 0.991,
+      "recall": 0.991,
+      "f1_score": 0.991,
+      "associations_matched": 1,
+      "associations_total": 1,
+      "processing_time_ms": 15.1
+    },
+    {
+      "scenario_id": "scenario_04_off_screen_narrator",
+      "description": "Off-screen narrator with no faces visible",
+      "duration_seconds": 3.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "associations_matched": 1,
+      "associations_total": 1,
+      "processing_time_ms": 1.01
+    },
+    {
+      "scenario_id": "scenario_05_voiceover_with_silent_people",
+      "description": "Voiceover narration while visible faces sit silently",
+      "duration_seconds": 3.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "associations_matched": 1,
+      "associations_total": 1,
+      "processing_time_ms": 4.0
+    },
+    {
+      "scenario_id": "scenario_06_silent_chewing",
+      "description": "Person chewing food silently; zero vocalization",
+      "duration_seconds": 3.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "associations_matched": 0,
+      "associations_total": 0,
+      "processing_time_ms": 5.0
+    },
+    {
+      "scenario_id": "scenario_07_smiling_laughing",
+      "description": "Person smiling wide without speech",
+      "duration_seconds": 3.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "associations_matched": 0,
+      "associations_total": 0,
+      "processing_time_ms": 4.74
+    },
+    {
+      "scenario_id": "scenario_08_static_open_mouth",
+      "description": "Static open mouth with zero motion velocity and zero speech",
+      "duration_seconds": 3.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "associations_matched": 0,
+      "associations_total": 0,
+      "processing_time_ms": 3.98
+    },
+    {
+      "scenario_id": "scenario_09_yawning",
+      "description": "Person yawning slowly without acoustic speech",
+      "duration_seconds": 3.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "associations_matched": 0,
+      "associations_total": 0,
+      "processing_time_ms": 3.99
+    },
+    {
+      "scenario_id": "scenario_10_rapid_interruptions",
+      "description": "Person B interrupts Person A mid-sentence",
+      "duration_seconds": 3.0,
+      "precision": 0.992,
+      "recall": 1.0,
+      "f1_score": 0.996,
+      "associations_matched": 2,
+      "associations_total": 2,
+      "processing_time_ms": 10.0
+    },
+    {
+      "scenario_id": "scenario_11_overlapping_crosstalk",
+      "description": "Two visible people speaking concurrently over an extended interval",
+      "duration_seconds": 3.0,
+      "precision": 0.992,
+      "recall": 0.992,
+      "f1_score": 0.992,
+      "associations_matched": 2,
+      "associations_total": 2,
+      "processing_time_ms": 11.02
+    },
+    {
+      "scenario_id": "scenario_12_similar_speakers",
+      "description": "Two similar speakers with distinct turns",
+      "duration_seconds": 3.0,
+      "precision": 0.962,
+      "recall": 1.0,
+      "f1_score": 0.98,
+      "associations_matched": 2,
+      "associations_total": 2,
+      "processing_time_ms": 8.0
+    },
+    {
+      "scenario_id": "scenario_13_return_after_long_gap",
+      "description": "Speaker speaks at t=0.5s, pauses for 3s, speaks again at t=4.5s",
+      "duration_seconds": 6.0,
+      "precision": 0.98,
+      "recall": 0.985,
+      "f1_score": 0.983,
+      "associations_matched": 1,
+      "associations_total": 1,
+      "processing_time_ms": 7.97
+    },
+    {
+      "scenario_id": "scenario_14_partial_occlusion",
+      "description": "Speaker mouth occluded mid-speech (t=1.2 to 1.6s)",
+      "duration_seconds": 3.0,
+      "precision": 0.84,
+      "recall": 0.989,
+      "f1_score": 0.908,
+      "associations_matched": 1,
+      "associations_total": 1,
+      "processing_time_ms": 5.0
+    },
+    {
+      "scenario_id": "scenario_15_profile_face",
+      "description": "Speaker turns head sideways during speech",
+      "duration_seconds": 3.0,
+      "precision": 0.88,
+      "recall": 0.978,
+      "f1_score": 0.926,
+      "associations_matched": 1,
+      "associations_total": 1,
+      "processing_time_ms": 5.01
+    },
+    {
+      "scenario_id": "scenario_16_scene_cut",
+      "description": "Scene cut at t=1.5s resetting visual tracks",
+      "duration_seconds": 3.0,
+      "precision": 0.923,
+      "recall": 1.0,
+      "f1_score": 0.96,
+      "associations_matched": 1,
+      "associations_total": 1,
+      "processing_time_ms": 8.16
+    },
+    {
+      "scenario_id": "scenario_17_background_music",
+      "description": "Speaker speaking with continuous background music",
+      "duration_seconds": 3.0,
+      "precision": 0.982,
+      "recall": 1.0,
+      "f1_score": 0.991,
+      "associations_matched": 1,
+      "associations_total": 1,
+      "processing_time_ms": 5.01
+    },
+    {
+      "scenario_id": "scenario_18_low_snr_audio",
+      "description": "Low SNR audio; relying on visual lip sync",
+      "duration_seconds": 3.0,
+      "precision": 0.982,
+      "recall": 1.0,
+      "f1_score": 0.991,
+      "associations_matched": 1,
+      "associations_total": 1,
+      "processing_time_ms": 4.71
+    },
+    {
+      "scenario_id": "scenario_19_nonzero_av_offset",
+      "description": "Audio offset by +80 ms; handled by AV synchronizer",
+      "duration_seconds": 3.0,
+      "precision": 0.982,
+      "recall": 1.0,
+      "f1_score": 0.991,
+      "associations_matched": 1,
+      "associations_total": 1,
+      "processing_time_ms": 5.06
+    },
+    {
+      "scenario_id": "scenario_20_vfr_video",
+      "description": "Variable frame rate with timestamp jitter",
+      "duration_seconds": 3.0,
+      "precision": 0.991,
+      "recall": 0.991,
+      "f1_score": 0.991,
+      "associations_matched": 1,
+      "associations_total": 1,
+      "processing_time_ms": 5.0
+    }
+  ]
+}

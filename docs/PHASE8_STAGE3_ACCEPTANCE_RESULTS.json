@@ -1,0 +1,93 @@
+{
+  "timestamp": "2026-11-21T14:21:34Z",
+  "platform": {
+    "os": "Windows 11 64-bit",
+    "cpu": "Intel Core i7-13620H",
+    "python": "3.11.9",
+    "execution_device": "cpu"
+  },
+  "tests": {
+    "test1_model_verification": {
+      "model_file": "3dspeaker_speech_campplus_sv_en_voxceleb_16k.onnx",
+      "size_bytes": 29596979,
+      "sha256": "98daf9bcf1c8abf3db374fec4c27a5eda7c58705bb3f180d057b085a72a88bb5",
+      "verified": true
+    },
+    "test2_embedding_extraction": {
+      "fbank_latency_ms": 6.84,
+      "onnx_inference_latency_ms": 107.7,
+      "total_latency_ms": 114.54,
+      "rtf": 0.0382,
+      "embedding_dim": 512,
+      "l2_norm": 1.0,
+      "passed": true
+    },
+    "test3_single_speaker": {
+      "audio_duration_sec": 26.22,
+      "num_speakers": 1,
+      "total_speech_duration_sec": 26.064,
+      "turn_count": 1,
+      "processing_duration_sec": 2.831,
+      "rtf": 0.108,
+      "passed": true
+    },
+    "test4_two_speaker_dialogue": {
+      "dialogue_duration_sec": 19.0,
+      "num_speakers": 2,
+      "turns": [
+        {
+          "speaker": "SPEAKER_00",
+          "start": 0.156,
+          "end": 6.148,
+          "duration": 5.992,
+          "confidence": 0.7684
+        },
+        {
+          "speaker": "SPEAKER_01",
+          "start": 6.492,
+          "end": 12.644,
+          "duration": 6.152,
+          "confidence": 0.8432
+        },
+        {
+          "speaker": "SPEAKER_00",
+          "start": 12.956,
+          "end": 19.0,
+          "duration": 6.044,
+          "confidence": 0.7269
+        }
+      ],
+      "der": 0.0,
+      "der_metrics": {
+        "der": 0.0,
+        "missed_speech_time": 0.0,
+        "false_alarm_time": 0.0,
+        "confusion_time": 0.0,
+        "total_reference_time": 18.0,
+        "evaluated_reference_time": 16.47
+      },
+      "processing_duration_sec": 1.656,
+      "rtf": 0.0871,
+      "passed": true
+    },
+    "test5_three_speaker_dialogue": {
+      "dialogue_duration_sec": 21.5,
+      "num_speakers": 3,
+      "turn_count": 4,
+      "passed": true
+    },
+    "test6_persistence_and_editing": {
+      "speakers_persisted": 2,
+      "turns_persisted": 3,
+      "reassigned_turn_id": "5b011adf-df60-49ee-bcc5-f4c3c7fa355a",
+      "reassigned_status": "manual",
+      "passed": true
+    }
+  },
+  "memory": {
+    "baseline_rss_mb": 67.6,
+    "peak_rss_mb": 181.85,
+    "incremental_rss_mb": 114.25
+  },
+  "acceptance_status": "ACCEPTED"
+}

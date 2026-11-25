@@ -1,0 +1,58 @@
+{
+  "hardware": {
+    "platform": "Windows 11 64-bit",
+    "cpu": "Intel Core i7-13620H",
+    "ram_total_gb": 16.0,
+    "runtime": "ONNX Runtime 1.32.0 (CPUExecutionProvider)"
+  },
+  "model_loading": {
+    "facemesh_load_time_ms": 202.61,
+    "light_asd_load_time_ms": 143.81,
+    "combined_load_time_ms": 346.42
+  },
+  "isolated_latencies": {
+    "landmark_latency_per_face_ms": 22.17,
+    "lip_dynamics_latency_us": 96.59,
+    "light_asd_latency_per_25_frames_ms": 310.42,
+    "light_asd_latency_per_frame_ms": 12.42
+  },
+  "scaling_benchmarks": {
+    "1": {
+      "face_count": 1,
+      "video_duration_sec": 10.0,
+      "total_frames": 250,
+      "e2e_duration_sec": 6.104,
+      "rtf": 0.6104,
+      "active_segments_count": 2,
+      "associations_count": 2,
+      "rss_mb": 247.41
+    },
+    "2": {
+      "face_count": 2,
+      "video_duration_sec": 10.0,
+      "total_frames": 250,
+      "e2e_duration_sec": 13.73,
+      "rtf": 1.373,
+      "active_segments_count": 4,
+      "associations_count": 2,
+      "rss_mb": 247.91
+    },
+    "4": {
+      "face_count": 4,
+      "video_duration_sec": 10.0,
+      "total_frames": 250,
+      "e2e_duration_sec": 25.51,
+      "rtf": 2.551,
+      "active_segments_count": 8,
+      "associations_count": 2,
+      "rss_mb": 248.94
+    }
+  },
+  "memory_profile": {
+    "baseline_rss_mb": 70.82,
+    "peak_rss_mb": 248.94,
+    "final_rss_mb": 248.94,
+    "incremental_rss_mb": 178.12,
+    "incremental_memory_target_met": false
+  }
+}

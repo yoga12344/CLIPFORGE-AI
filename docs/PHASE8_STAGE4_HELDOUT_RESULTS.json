@@ -1,0 +1,38 @@
+{
+  "overall_precision": 0.9814,
+  "overall_recall": 0.9961,
+  "overall_f1": 0.9887,
+  "association_accuracy": 1.0,
+  "scenarios": [
+    {
+      "scenario": "held_out_01_three_way_debate",
+      "precision": 0.9893,
+      "recall": 0.9952,
+      "f1": 0.9923
+    },
+    {
+      "scenario": "held_out_02_documentary_narration",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    {
+      "scenario": "held_out_03_rapid_stutter_short_bursts",
+      "precision": 0.9732,
+      "recall": 0.9909,
+      "f1": 0.982
+    },
+    {
+      "scenario": "held_out_04_camera_cut_dialogue",
+      "precision": 0.9542,
+      "recall": 0.9957,
+      "f1": 0.9745
+    },
+    {
+      "scenario": "held_out_05_heavy_ambient_noise",
+      "precision": 0.9964,
+      "recall": 1.0,
+      "f1": 0.9982
+    }
+  ]
+}
